@@ -10,8 +10,8 @@ load_dotenv()
 app = FastAPI()
 secret = os.getenv("SECRET")
 refresh_secret = os.getenv("REFRESH_SECRET")
-access_exp_minutes = os.getenv("ACCESS_MINUTES")
-refresh_exp_days = os.getenv("REFRESH_DAYS")
+access_exp_minutes = int(os.getenv("ACCESS_MINUTES"))
+refresh_exp_days = int(os.getenv("REFRESH_DAYS"))
 
 session = {}
 
@@ -37,8 +37,8 @@ async def issue(username: str = '', password: str = '', request: Request = None)
     if not (username == 'a' and password == 'b'):
         raise HTTPException(status_code=400, detail="username or password invalid")
     
-    exp = datetime.now(tz=timezone.utc) + timedelta(access_exp_minutes)
-    exp_refresh = datetime.now(tz=timezone.utc) + timedelta(refresh_exp_days)
+    exp = datetime.now(tz=timezone.utc) + timedelta(minutes=access_exp_minutes)
+    exp_refresh = datetime.now(tz=timezone.utc) + timedelta(days=refresh_exp_days)
 
     session_id = str(uuid.uuid4())
     payload = {"client_host": client_host,
@@ -85,8 +85,8 @@ async def issue(refresh_token: str = '', access_token: str = '', request: Reques
     if session.get(client_host) != access_payload.get("session_id"):
         raise HTTPException(status_code=400, detail="Session not found")
 
-    exp = datetime.now(tz=timezone.utc) + timedelta(access_exp_minutes)
-    exp_refresh = datetime.now(tz=timezone.utc) + timedelta(refresh_exp_days)
+    exp = datetime.now(tz=timezone.utc) + timedelta(minutes=access_exp_minutes)
+    exp_refresh = datetime.now(tz=timezone.utc) + timedelta(days=refresh_exp_days)
 
     access_payload.update({"exp": exp})
     refresh_payload.update({"exp": exp_refresh})
